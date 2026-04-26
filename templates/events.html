@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Events — EventHub{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>🎯 All Events</h1>
+        <form class="search-bar" method="GET" action="{{ url_for('events.list_events') }}">
+            <input type="text" name="search" placeholder="Search events..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            {% if search_query %}
+                <a href="{{ url_for('events.list_events') }}" class="btn btn-secondary btn-sm">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if search_query %}
+        <p style="color:var(--clr-text-muted);margin-bottom:1.5rem;">Showing results for "<strong>{{ search_query }}</strong>" ({{ events | length }} found)</p>
+    {% endif %}
+
+    {% if events %}
+    <div class="grid grid-2">
+        {% for event in events %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ event.Name }}</h3>
+                {% set pct = (event.Participant_Count / event.Max_Seats * 100) | int if event.Max_Seats > 0 else 0 %}
+                {% if event.Participant_Count >= event.Max_Seats %}
+                    <span class="card-badge badge-full">Full</span>
+                {% elif pct >= 80 %}
+                    <span class="card-badge badge-popular">🔥 Popular</span>
+                {% else %}
+                    <span class="card-badge badge-open">Open</span>
+                {% endif %}
+            </div>
+            <p class="card-desc">{{ event.Description }}</p>
+            <div class="card-meta">
+                <span>📅 {{ event.Date }}</span>
+                <span>📍 {{ event.Venue }}</span>
+                <span>👤 {{ event.Faculty_Name }}</span>
+            </div>
+            <div class="capacity-bar">
+                {% set pct_val = (event.Participant_Count / event.Max_Seats * 100) | int if event.Max_Seats > 0 else 0 %}
+                <div class="capacity-fill {% if pct_val < 50 %}low{% elif pct_val < 80 %}medium{% else %}high{% endif %}" style="width: {{ pct_val }}%"></div>
+            </div>
+            <div class="card-footer">
+                <span style="font-size:0.85rem;color:var(--clr-text-muted);">{{ event.Participant_Count }}/{{ event.Max_Seats }} seats</span>
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                    {% if current_user.type == 'student' %}
+                        {% if event.Event_ID in registered_event_ids %}
+                            <span style="font-size:0.8rem;color:var(--clr-success);">✓ Registered</span>
+                        {% endif %}
+                    {% endif %}
+                    <a href="{{ url_for('events.event_detail', event_id=event.Event_ID) }}" class="btn btn-primary btn-sm">View →</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">🔍</div>
+        <h3>No events found</h3>
+        <p>{% if search_query %}Try a different search term.{% else %}No events available yet.{% endif %}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

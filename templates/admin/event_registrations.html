@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Registrations for {{ event.Name }} — EventHub{% endblock %}
+{% block content %}
+<div class="container">
+    <a href="{{ url_for('admin.dashboard') }}" style="color:var(--clr-text-muted);font-size:0.9rem;">← Back to Dashboard</a>
+
+    <div class="page-header" style="margin-top:1rem;">
+        <div>
+            <h1>📋 {{ event.Name }}</h1>
+            <p style="color:var(--clr-text-muted);">{{ event.Participant_Count }} / {{ event.Max_Seats }} registered &nbsp;|&nbsp; {{ event.Date }} &nbsp;|&nbsp; {{ event.Venue }}</p>
+        </div>
+    </div>
+
+    {% if registrations %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    <th>Department</th>
+                    <th>Email</th>
+                    <th>Registered On</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reg in registrations %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ reg.Student_ID }}</td>
+                    <td><strong>{{ reg.Student_Name }}</strong></td>
+                    <td>{{ reg.Student_Dept }}</td>
+                    <td>{{ reg.Student_Email }}</td>
+                    <td>{{ reg.Timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">👥</div>
+        <h3>No registrations yet</h3>
+        <p>No students have registered for this event.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

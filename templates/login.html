@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Student Login — EventHub{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <div class="form-card">
+            <h2>👤 Student Login</h2>
+            <p class="subtitle">Access your event dashboard</p>
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="you@student.edu" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                </div>
+            </form>
+            <div class="form-footer">
+                Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

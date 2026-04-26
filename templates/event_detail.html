@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ event.Name }} — EventHub{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="event-detail">
+        <a href="{{ url_for('events.list_events') }}" style="color:var(--clr-text-muted);font-size:0.9rem;">← Back to Events</a>
+
+        <div class="event-header" style="margin-top:1rem;">
+            <h1>{{ event.Name }}</h1>
+            {% set pct = (event.Participant_Count / event.Max_Seats * 100) | int if event.Max_Seats > 0 else 0 %}
+            {% if event.Participant_Count >= event.Max_Seats %}
+                <span class="card-badge badge-full" style="display:inline-block;margin-top:0.5rem;">Full</span>
+            {% elif pct >= 80 %}
+                <span class="card-badge badge-popular" style="display:inline-block;margin-top:0.5rem;">🔥 Popular</span>
+            {% else %}
+                <span class="card-badge badge-open" style="display:inline-block;margin-top:0.5rem;">Open for Registration</span>
+            {% endif %}
+        </div>
+
+        <div class="meta-grid">
+            <div class="meta-item">
+                <div class="meta-label">Date</div>
+                <div class="meta-value">📅 {{ event.Date }}</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Venue</div>
+                <div class="meta-value">📍 {{ event.Venue }}</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Organized By</div>
+                <div class="meta-value">👤 {{ event.Faculty_Name }}</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Capacity</div>
+                <div class="meta-value">{{ event.Participant_Count }} / {{ event.Max_Seats }}</div>
+            </div>
+        </div>
+
+        <!-- Capacity Bar -->
+        <div style="margin:1.5rem 0;">
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--clr-text-muted);margin-bottom:0.5rem;">
+                <span>Seats Filled</span>
+                <span>{{ pct }}%</span>
+            </div>
+            <div class="capacity-bar" style="height:10px;">
+                <div class="capacity-fill {% if pct < 50 %}low{% elif pct < 80 %}medium{% else %}high{% endif %}" style="width: {{ pct }}%"></div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="card" style="margin:1.5rem 0;">
+            <h3 style="margin-bottom:0.75rem;">About This Event</h3>
+            <p style="color:var(--clr-text-muted);line-height:1.8;">{{ event.Description }}</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex;gap:1rem;margin-top:2rem;">
+            {% if current_user.type == 'student' %}
+                {% if is_registered %}
+                    <form method="POST" action="{{ url_for('registrations.unregister_from_event', event_id=event.Event_ID) }}">
+                        <button type="submit" class="btn btn-danger">Cancel Registration</button>
+                    </form>
+                    <span style="display:flex;align-items:center;color:var(--clr-success);font-weight:600;">✓ You are registered</span>
+                {% elif event.Participant_Count < event.Max_Seats %}
+                    <form method="POST" action="{{ url_for('registrations.register_for_event', event_id=event.Event_ID) }}">
+                        <button type="submit" class="btn btn-success btn-lg">Register Now</button>
+                    </form>
+                {% else %}
+                    <span class="btn btn-secondary" style="cursor:not-allowed;opacity:0.6;">Event Full</span>
+                {% endif %}
+            {% elif not current_user.type %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">Login to Register</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

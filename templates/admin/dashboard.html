@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — EventHub{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>🛠️ Admin Dashboard</h1>
+        <a href="{{ url_for('admin.create_event') }}" class="btn btn-success">+ Create Event</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ my_events | length }}</div>
+            <div class="stat-label">My Events</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ summary | length }}</div>
+            <div class="stat-label">Total Events</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ counts | map(attribute='Participant_Count') | sum }}</div>
+            <div class="stat-label">Total Registrations</div>
+        </div>
+    </div>
+
+    <!-- My Events -->
+    <h2 class="section-title">📋 My Events</h2>
+    {% if my_events %}
+    <div class="table-container" style="margin-bottom:2.5rem;">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Event Name</th>
+                    <th>Date</th>
+                    <th>Venue</th>
+                    <th>Seats</th>
+                    <th>Registered</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in my_events %}
+                <tr>
+                    <td>{{ event.Event_ID }}</td>
+                    <td><strong>{{ event.Name }}</strong></td>
+                    <td>{{ event.Date }}</td>
+                    <td>{{ event.Venue }}</td>
+                    <td>{{ event.Max_Seats }}</td>
+                    <td>
+                        <span style="font-weight:600;color:{% if event.Participant_Count >= event.Max_Seats %}var(--clr-danger){% else %}var(--clr-success){% endif %};">
+                            {{ event.Participant_Count }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:0.5rem;">
+                            <a href="{{ url_for('admin.event_registrations', event_id=event.Event_ID) }}" class="btn btn-secondary btn-sm">Registrations</a>
+                            <a href="{{ url_for('admin.edit_event', event_id=event.Event_ID) }}" class="btn btn-primary btn-sm">Edit</a>
+                            <form method="POST" action="{{ url_for('admin.delete_event', event_id=event.Event_ID) }}" class="confirm-delete" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:2rem;">
+        <h3>No events created yet</h3>
+        <p>Create your first event using the button above.</p>
+    </div>
+    {% endif %}
+
+    <!-- Participation Summary (from VIEW) -->
+    <h2 class="section-title">📊 Event Participation Summary (Database VIEW)</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Date</th>
+                    <th>Venue</th>
+                    <th>Faculty</th>
+                    <th>Capacity</th>
+                    <th>Participants</th>
+                    <th>Fill Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in summary %}
+                <tr>
+                    <td><strong>{{ row.Event_Name }}</strong></td>
+                    <td>{{ row.Event_Date }}</td>
+                    <td>{{ row.Venue }}</td>
+                    <td>{{ row.Faculty_Name }}</td>
+                    <td>{{ row.Max_Seats }}</td>
+                    <td>{{ row.Participant_Count }}</td>
+                    <td>
+                        {% set pct = (row.Participant_Count / row.Max_Seats * 100) | int if row.Max_Seats > 0 else 0 %}
+                        <div class="capacity-bar" style="width:100px;display:inline-block;vertical-align:middle;">
+                            <div class="capacity-fill {% if pct < 50 %}low{% elif pct < 80 %}medium{% else %}high{% endif %}" style="width:{{ pct }}%"></div>
+                        </div>
+                        <span style="font-size:0.8rem;margin-left:0.5rem;">{{ pct }}%</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

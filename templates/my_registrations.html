@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}My Registrations — EventHub{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>🎟️ My Registrations</h1>
+        <a href="{{ url_for('events.list_events') }}" class="btn btn-primary btn-sm">Browse More Events</a>
+    </div>
+
+    {% if registrations %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Event Name</th>
+                    <th>Date</th>
+                    <th>Venue</th>
+                    <th>Organized By</th>
+                    <th>Registered On</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reg in registrations %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><a href="{{ url_for('events.event_detail', event_id=reg.Event_ID) }}">{{ reg.Event_Name }}</a></td>
+                    <td>{{ reg.Event_Date }}</td>
+                    <td>{{ reg.Venue }}</td>
+                    <td>{{ reg.Faculty_Name }}</td>
+                    <td>{{ reg.Timestamp }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('registrations.unregister_from_event', event_id=reg.Event_ID) }}" class="confirm-delete" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">📋</div>
+        <h3>No registrations yet</h3>
+        <p>Browse events and register for the ones that interest you!</p>
+        <a href="{{ url_for('events.list_events') }}" class="btn btn-primary" style="margin-top:1rem;">Browse Events</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

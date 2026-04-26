@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Create Event — EventHub{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-container" style="max-width:560px;">
+        <a href="{{ url_for('admin.dashboard') }}" style="color:var(--clr-text-muted);font-size:0.9rem;">← Back to Dashboard</a>
+        <div class="form-card" style="margin-top:1rem;">
+            <h2>✨ Create New Event</h2>
+            <p class="subtitle">Fill in the details for your new event</p>
+            <form method="POST" action="{{ url_for('admin.create_event') }}">
+                <div class="form-group">
+                    <label for="name">Event Name *</label>
+                    <input type="text" id="name" name="name" placeholder="e.g., TechFest 2024" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" placeholder="Describe the event..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="date">Date *</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="venue">Venue *</label>
+                    <input type="text" id="venue" name="venue" placeholder="e.g., Main Auditorium" required>
+                </div>
+                <div class="form-group">
+                    <label for="max_seats">Maximum Seats</label>
+                    <input type="number" id="max_seats" name="max_seats" value="100" min="1">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Create Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
