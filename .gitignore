@@ -48,5 +48,3 @@ build/
 # Byte-compiled / optimized
 *.pyc
 
-# Render
-.python-version
