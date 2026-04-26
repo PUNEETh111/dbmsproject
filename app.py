@@ -103,10 +103,15 @@ def seed_sample_data():
     db.commit()
 
 
-if __name__ == '__main__':
-    app = create_app()
-    with app.app_context():
+# --- Production: Module-level app for Gunicorn ---
+# Gunicorn uses `gunicorn app:app` which needs this at module level
+app = create_app()
+
+# Auto-initialize database (works on both local and Render)
+with app.app_context():
+    try:
         db_path = app.config['DATABASE']
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
         need_init = False
 
         if not os.path.exists(db_path):
@@ -123,9 +128,14 @@ if __name__ == '__main__':
             init_db()
             seed_sample_data()
             print('Database created and seeded.')
+    except Exception as e:
+        print(f'DB init note: {e}')
 
+
+if __name__ == '__main__':
     print('\n🚀 Smart College Event Management System')
     print('📍 http://127.0.0.1:5000')
     print('👤 Student: aarav@student.edu / password123')
     print('🧑‍🏫 Faculty: ananya@college.edu / password123\n')
     app.run(debug=True, port=5000)
+
