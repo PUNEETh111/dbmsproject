@@ -1,18 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Create Account — EventHub{% endblock %}
+{% block title %}Admin Registration — EventHub{% endblock %}
 {% block content %}
 <div class="container">
     <div class="form-container">
         <div class="form-card">
-            <h2>🎓 Create Account</h2>
-            <p class="subtitle">Join EventHub to register for campus events</p>
-            <form method="POST" action="{{ url_for('auth.register') }}">
-                <div class="form-group">
-                    <label for="usn">USN (University Seat Number)</label>
-                    <input type="text" id="usn" name="usn" placeholder="e.g. 1RV21CS001" required
-                           style="text-transform: uppercase;" pattern="[A-Za-z0-9]+" title="Enter a valid USN (letters and numbers only)">
-                    <small style="color: var(--clr-text-muted); font-size: 0.78rem;">Your USN is your primary identity in the system</small>
-                </div>
+            <h2>🛡️ Admin Registration</h2>
+            <p class="subtitle">Create an admin account to manage events</p>
+            <form method="POST" action="{{ url_for('auth.admin_register') }}">
                 <div class="form-group">
                     <label for="name">Full Name</label>
                     <input type="text" id="name" name="name" placeholder="Enter your full name" required>
@@ -30,8 +24,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="you@student.edu" required>
+                    <label for="email">Admin Email</label>
+                    <input type="email" id="email" name="email" placeholder="you@college.edu" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
@@ -42,11 +36,12 @@
                     <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter password" required>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Create Account</button>
+                    <button type="submit" class="btn btn-primary">Create Admin Account</button>
                 </div>
             </form>
             <div class="form-footer">
-                Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+                Already have an account? <a href="{{ url_for('auth.admin_login') }}">Admin Login</a>
+                &nbsp;|&nbsp; Student? <a href="{{ url_for('auth.register') }}">Student Registration</a>
             </div>
         </div>
     </div>

@@ -152,6 +152,7 @@ class Registration:
                 R.Reg_ID,
                 R.Timestamp,
                 S.Student_ID,
+                S.USN AS Student_USN,
                 S.Name AS Student_Name,
                 S.Dept AS Student_Dept,
                 S.Email AS Student_Email

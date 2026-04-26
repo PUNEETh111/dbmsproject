@@ -31,7 +31,7 @@ def create_app():
         from models.event import Event
         events = Event.get_all()
         summary = Event.get_participation_summary()
-        return render_template('home.html', events=events[:6], summary=summary)
+        return render_template('home.html', events=events, summary=summary)
 
     @app.errorhandler(404)
     def not_found(e):
@@ -67,15 +67,15 @@ def seed_sample_data():
             pass
 
     students = [
-        ('Aarav Patel', 'Computer Science', 'aarav@student.edu'),
-        ('Priya Singh', 'Electronics', 'priya@student.edu'),
-        ('Rohit Verma', 'Mechanical', 'rohit@student.edu'),
-        ('Sneha Reddy', 'Computer Science', 'sneha@student.edu'),
-        ('Karan Mehta', 'Civil', 'karan@student.edu'),
+        ('1RV21CS001', 'Aarav Patel', 'Computer Science', 'aarav@student.edu'),
+        ('1RV21EC015', 'Priya Singh', 'Electronics', 'priya@student.edu'),
+        ('1RV21ME032', 'Rohit Verma', 'Mechanical', 'rohit@student.edu'),
+        ('1RV21CS045', 'Sneha Reddy', 'Computer Science', 'sneha@student.edu'),
+        ('1RV21CV008', 'Karan Mehta', 'Civil', 'karan@student.edu'),
     ]
-    for n, d, e in students:
+    for usn, n, d, e in students:
         try:
-            db.execute("INSERT INTO STUDENT (Name,Dept,Email,Password) VALUES (?,?,?,?)", (n,d,e,pw))
+            db.execute("INSERT INTO STUDENT (USN,Name,Dept,Email,Password) VALUES (?,?,?,?,?)", (usn,n,d,e,pw))
         except Exception:
             pass
 
@@ -135,7 +135,6 @@ with app.app_context():
 if __name__ == '__main__':
     print('\n🚀 Smart College Event Management System')
     print('📍 http://127.0.0.1:5000')
-    print('👤 Student: aarav@student.edu / password123')
+    print('👤 Student: aarav@student.edu / password123 (USN: 1RV21CS001)')
     print('🧑‍🏫 Faculty: ananya@college.edu / password123\n')
     app.run(debug=True, port=5000)
-

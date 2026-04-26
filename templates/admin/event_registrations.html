@@ -17,7 +17,7 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Student ID</th>
+                    <th>USN</th>
                     <th>Student Name</th>
                     <th>Department</th>
                     <th>Email</th>
@@ -28,7 +28,7 @@
                 {% for reg in registrations %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ reg.Student_ID }}</td>
+                    <td><strong style="color:var(--clr-primary);letter-spacing:0.5px;">{{ reg.Student_USN }}</strong></td>
                     <td><strong>{{ reg.Student_Name }}</strong></td>
                     <td>{{ reg.Student_Dept }}</td>
                     <td>{{ reg.Student_Email }}</td>

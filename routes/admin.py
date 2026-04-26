@@ -7,11 +7,13 @@ Handles admin panel functionality:
   - Update event (UPDATE)
   - Delete event (DELETE)
   - View registrations per event (JOIN query)
+  - Manage all registered students (SELECT ALL)
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from models.event import Event
 from models.registration import Registration
+from models.student import Student
 from functools import wraps
 
 # Blueprint for admin routes
@@ -19,12 +21,21 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
 def admin_required(f):
-    """Decorator: Ensure user is logged in as faculty/admin."""
+    """Decorator: Ensure user is logged in as a valid admin."""
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'user_id' not in session or session.get('user_type') != 'faculty':
-            flash('Please log in as faculty to access the admin panel.', 'error')
+            flash('Please log in as admin to access the admin panel.', 'error')
             return redirect(url_for('auth.admin_login'))
+
+        # Verify admin still exists in DB (handles stale sessions after DB reset)
+        from models.faculty import Faculty
+        admin = Faculty.find_by_id(session['user_id'])
+        if not admin:
+            session.clear()
+            flash('Your session has expired. Please log in again.', 'error')
+            return redirect(url_for('auth.admin_login'))
+
         return f(*args, **kwargs)
     return decorated
 
@@ -45,12 +56,44 @@ def dashboard():
     # Get participant counts (GROUP BY query)
     counts = Registration.get_participant_counts()
 
+    # Get total students count
+    all_students = Student.get_all()
+
     return render_template(
         'admin/dashboard.html',
         summary=summary,
         my_events=my_events,
-        counts=counts
+        counts=counts,
+        total_students=len(all_students)
     )
+
+
+@admin_bp.route('/students')
+@admin_required
+def manage_students():
+    """
+    View all registered students.
+    Admin can see USN, Name, Department, Email for every student.
+    """
+    students = Student.get_all()
+    return render_template('admin/students.html', students=students)
+
+
+@admin_bp.route('/delete-student/<int:student_id>', methods=['POST'])
+@admin_required
+def delete_student(student_id):
+    """
+    Delete a student account.
+    Cascading FK deletes related registrations automatically.
+    """
+    student = Student.find_by_id(student_id)
+    if student:
+        Student.delete(student_id)
+        flash(f'Student "{student["Name"]}" (USN: {student["USN"]}) removed successfully.', 'info')
+    else:
+        flash('Student not found.', 'error')
+
+    return redirect(url_for('admin.manage_students'))
 
 
 @admin_bp.route('/create-event', methods=['GET', 'POST'])
@@ -82,17 +125,20 @@ def create_event():
             return render_template('admin/create_event.html')
 
         # INSERT operation
-        event_id = Event.create(
-            name=name,
-            description=description,
-            date=date,
-            venue=venue,
-            max_seats=max_seats,
-            faculty_id=session['user_id']
-        )
-
-        flash(f'Event "{name}" created successfully!', 'success')
-        return redirect(url_for('admin.dashboard'))
+        try:
+            event_id = Event.create(
+                name=name,
+                description=description,
+                date=date,
+                venue=venue,
+                max_seats=max_seats,
+                faculty_id=session['user_id']
+            )
+            flash(f'Event "{name}" created successfully!', 'success')
+            return redirect(url_for('admin.dashboard'))
+        except Exception as e:
+            flash('Failed to create event. Please log out and log in again.', 'error')
+            return render_template('admin/create_event.html')
 
     return render_template('admin/create_event.html')
 

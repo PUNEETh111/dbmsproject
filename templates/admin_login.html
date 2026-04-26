@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Faculty Login — EventHub{% endblock %}
+{% block title %}Admin Login — EventHub{% endblock %}
 {% block content %}
 <div class="container">
     <div class="form-container">
         <div class="form-card">
-            <h2>🧑‍🏫 Faculty Login</h2>
+            <h2>🛡️ Admin Login</h2>
             <p class="subtitle">Access the admin panel to manage events</p>
             <form method="POST" action="{{ url_for('auth.admin_login') }}">
                 <div class="form-group">
-                    <label for="email">Faculty Email</label>
+                    <label for="email">Admin Email</label>
                     <input type="email" id="email" name="email" placeholder="you@college.edu" required>
                 </div>
                 <div class="form-group">
@@ -16,11 +16,12 @@
                     <input type="password" id="password" name="password" placeholder="Enter your password" required>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Sign In as Faculty</button>
+                    <button type="submit" class="btn btn-primary">Sign In as Admin</button>
                 </div>
             </form>
             <div class="form-footer">
-                Student? <a href="{{ url_for('auth.login') }}">Login here</a>
+                Don't have an account? <a href="{{ url_for('auth.admin_register') }}">Register as Admin</a>
+                &nbsp;|&nbsp; Student? <a href="{{ url_for('auth.login') }}">Login here</a>
             </div>
         </div>
     </div>

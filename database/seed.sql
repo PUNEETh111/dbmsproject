@@ -26,16 +26,16 @@ INSERT OR IGNORE INTO FACULTY (Name, Dept, Email, Password) VALUES
 -- STUDENTS
 -- Password: password123
 -- ============================================================
-INSERT OR IGNORE INTO STUDENT (Name, Dept, Email, Password) VALUES
-('Aarav Patel',    'Computer Science', 'aarav@student.edu',
+INSERT OR IGNORE INTO STUDENT (USN, Name, Dept, Email, Password) VALUES
+('1RV21CS001', 'Aarav Patel',    'Computer Science', 'aarav@student.edu',
  'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
-('Priya Singh',    'Electronics',      'priya@student.edu',
+('1RV21EC015', 'Priya Singh',    'Electronics',      'priya@student.edu',
  'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
-('Rohit Verma',    'Mechanical',       'rohit@student.edu',
+('1RV21ME032', 'Rohit Verma',    'Mechanical',       'rohit@student.edu',
  'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
-('Sneha Reddy',    'Computer Science', 'sneha@student.edu',
+('1RV21CS045', 'Sneha Reddy',    'Computer Science', 'sneha@student.edu',
  'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
-('Karan Mehta',    'Civil',            'karan@student.edu',
+('1RV21CV008', 'Karan Mehta',    'Civil',            'karan@student.edu',
  'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e');
 
 -- ============================================================

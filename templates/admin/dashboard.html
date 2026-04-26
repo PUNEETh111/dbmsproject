@@ -4,7 +4,10 @@
 <div class="container">
     <div class="page-header">
         <h1>🛠️ Admin Dashboard</h1>
-        <a href="{{ url_for('admin.create_event') }}" class="btn btn-success">+ Create Event</a>
+        <div style="display:flex;gap:0.75rem;">
+            <a href="{{ url_for('admin.manage_students') }}" class="btn btn-secondary">👥 Manage Students</a>
+            <a href="{{ url_for('admin.create_event') }}" class="btn btn-success">+ Create Event</a>
+        </div>
     </div>
 
     <!-- Stats -->
@@ -20,6 +23,10 @@
         <div class="stat-card">
             <div class="stat-value">{{ counts | map(attribute='Participant_Count') | sum }}</div>
             <div class="stat-label">Total Registrations</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Registered Students</div>
         </div>
     </div>
 
@@ -82,7 +89,7 @@
                     <th>Event</th>
                     <th>Date</th>
                     <th>Venue</th>
-                    <th>Faculty</th>
+                    <th>Admin</th>
                     <th>Capacity</th>
                     <th>Participants</th>
                     <th>Fill Rate</th>

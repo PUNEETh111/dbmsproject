@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Manage Students — EventHub{% endblock %}
+{% block content %}
+<div class="container">
+    <a href="{{ url_for('admin.dashboard') }}" style="color:var(--clr-text-muted);font-size:0.9rem;">← Back to Dashboard</a>
+
+    <div class="page-header" style="margin-top:1rem;">
+        <div>
+            <h1>👥 Registered Students</h1>
+            <p style="color:var(--clr-text-muted);">{{ students | length }} student{{ 's' if students | length != 1 else '' }} registered in the system</p>
+        </div>
+    </div>
+
+    {% if students %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>USN</th>
+                    <th>Student Name</th>
+                    <th>Department</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><strong style="color:var(--clr-primary);letter-spacing:0.5px;">{{ student.USN }}</strong></td>
+                    <td><strong>{{ student.Name }}</strong></td>
+                    <td>{{ student.Dept }}</td>
+                    <td>{{ student.Email }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.delete_student', student_id=student.Student_ID) }}" class="confirm-delete" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">👥</div>
+        <h3>No students registered yet</h3>
+        <p>Students will appear here once they create their accounts.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

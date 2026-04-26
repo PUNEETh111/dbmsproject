@@ -16,10 +16,12 @@ PRAGMA foreign_keys = ON;
 -- TABLE: STUDENT
 -- Stores student information.
 -- PK: Student_ID (auto-increment)
+-- UNIQUE: USN (University Seat Number — primary identity)
 -- UNIQUE: Email (prevents duplicate accounts)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS STUDENT (
     Student_ID  INTEGER PRIMARY KEY AUTOINCREMENT,
+    USN         TEXT    UNIQUE NOT NULL,
     Name        TEXT    NOT NULL,
     Dept        TEXT    NOT NULL DEFAULT 'General',
     Email       TEXT    UNIQUE NOT NULL,

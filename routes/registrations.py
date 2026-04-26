@@ -16,12 +16,21 @@ registrations_bp = Blueprint('registrations', __name__)
 
 
 def login_required(f):
-    """Decorator: Ensure user is logged in as a student."""
+    """Decorator: Ensure user is logged in as a valid student."""
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'user_id' not in session or session.get('user_type') != 'student':
             flash('Please log in as a student to access this page.', 'error')
             return redirect(url_for('auth.login'))
+
+        # Verify student still exists in DB (handles stale sessions after DB reset)
+        from models.student import Student
+        student = Student.find_by_id(session['user_id'])
+        if not student:
+            session.clear()
+            flash('Your session has expired. Please log in again.', 'error')
+            return redirect(url_for('auth.login'))
+
         return f(*args, **kwargs)
     return decorated
 

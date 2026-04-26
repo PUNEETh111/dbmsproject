@@ -62,7 +62,7 @@ class Event:
                 (SELECT COUNT(*) FROM REGISTRATION R WHERE R.Event_ID = E.Event_ID) AS Participant_Count
             FROM EVENT E
             LEFT JOIN FACULTY F ON E.Faculty_ID = F.Faculty_ID
-            ORDER BY E.Date ASC
+            ORDER BY E.Date DESC
         """).fetchall()
 
     @staticmethod

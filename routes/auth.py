@@ -49,9 +49,10 @@ def register():
     """
     Student registration page.
     GET: Render the registration form.
-    POST: Create new student account.
+    POST: Create new student account with USN.
     """
     if request.method == 'POST':
+        usn = request.form.get('usn', '').strip()
         name = request.form.get('name', '').strip()
         dept = request.form.get('dept', '').strip()
         email = request.form.get('email', '').strip()
@@ -59,7 +60,7 @@ def register():
         confirm = request.form.get('confirm_password', '')
 
         # Validation
-        if not all([name, dept, email, password]):
+        if not all([usn, name, dept, email, password]):
             flash('Please fill in all fields.', 'error')
             return render_template('register.html')
 
@@ -71,8 +72,14 @@ def register():
             flash('Password must be at least 6 characters.', 'error')
             return render_template('register.html')
 
+        # Validate USN format (e.g., 1XX21CS001)
+        usn_upper = usn.upper().strip()
+        if len(usn_upper) < 5:
+            flash('Please enter a valid USN.', 'error')
+            return render_template('register.html')
+
         # Create student (INSERT operation)
-        student_id = Student.create(name, dept, email, password)
+        student_id = Student.create(usn_upper, name, dept, email, password)
 
         if student_id:
             # Auto-login after registration
@@ -82,7 +89,7 @@ def register():
             flash('Account created successfully! Welcome!', 'success')
             return redirect(url_for('events.list_events'))
         else:
-            flash('An account with this email already exists.', 'error')
+            flash('An account with this USN or email already exists.', 'error')
 
     return render_template('register.html')
 
@@ -114,6 +121,49 @@ def admin_login():
             flash('Invalid email or password.', 'error')
 
     return render_template('admin_login.html')
+
+
+@auth_bp.route('/admin/register', methods=['GET', 'POST'])
+def admin_register():
+    """
+    Faculty/Admin registration page.
+    GET: Render admin registration form.
+    POST: Create new faculty account.
+    """
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        dept = request.form.get('dept', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        confirm = request.form.get('confirm_password', '')
+
+        # Validation
+        if not all([name, dept, email, password]):
+            flash('Please fill in all fields.', 'error')
+            return render_template('admin_register.html')
+
+        if password != confirm:
+            flash('Passwords do not match.', 'error')
+            return render_template('admin_register.html')
+
+        if len(password) < 6:
+            flash('Password must be at least 6 characters.', 'error')
+            return render_template('admin_register.html')
+
+        # Create faculty (INSERT operation)
+        faculty_id = Faculty.create(name, dept, email, password)
+
+        if faculty_id:
+            # Auto-login after registration
+            session['user_id'] = faculty_id
+            session['user_name'] = name
+            session['user_type'] = 'faculty'
+            flash('Admin account created successfully! Welcome!', 'success')
+            return redirect(url_for('admin.dashboard'))
+        else:
+            flash('An account with this email already exists.', 'error')
+
+    return render_template('admin_register.html')
 
 
 @auth_bp.route('/logout')

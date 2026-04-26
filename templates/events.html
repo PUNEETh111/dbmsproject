@@ -36,7 +36,7 @@
             <div class="card-meta">
                 <span>📅 {{ event.Date }}</span>
                 <span>📍 {{ event.Venue }}</span>
-                <span>👤 {{ event.Faculty_Name }}</span>
+                <span>🛡️ {{ event.Faculty_Name }}</span>
             </div>
             <div class="capacity-bar">
                 {% set pct_val = (event.Participant_Count / event.Max_Seats * 100) | int if event.Max_Seats > 0 else 0 %}
