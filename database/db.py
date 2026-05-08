@@ -47,6 +47,18 @@ def is_mysql_configured():
     return MYSQL_AVAILABLE and host != 'localhost' and password != ''
 
 
+def _create_sqlite_connection():
+    """Create and configure a SQLite connection (used as fallback)."""
+    db_path = current_app.config.get('SQLITE_DATABASE',
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'college_events.db'))
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    conn = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
+    return conn
+
+
 def get_db():
     """
     Get a database connection for the current request.
@@ -68,33 +80,33 @@ def get_db():
     """
     if 'db' not in g:
         if is_mysql_configured():
-            # --- MySQL Connection ---
-            conn_params = {
-                'host': current_app.config['MYSQL_HOST'],
-                'port': current_app.config['MYSQL_PORT'],
-                'user': current_app.config['MYSQL_USER'],
-                'password': current_app.config['MYSQL_PASSWORD'],
-                'database': current_app.config['MYSQL_DATABASE'],
-                'autocommit': False,
-                'connection_timeout': 10
-            }
+            # --- Try MySQL Connection ---
+            try:
+                conn_params = {
+                    'host': current_app.config['MYSQL_HOST'],
+                    'port': current_app.config['MYSQL_PORT'],
+                    'user': current_app.config['MYSQL_USER'],
+                    'password': current_app.config['MYSQL_PASSWORD'],
+                    'database': current_app.config['MYSQL_DATABASE'],
+                    'autocommit': False,
+                    'connection_timeout': 5
+                }
 
-            # Enable SSL for cloud MySQL providers (e.g., Aiven, TiDB, PlanetScale)
-            if current_app.config.get('MYSQL_SSL', False):
-                conn_params['ssl_disabled'] = False
-                conn_params['ssl_verify_cert'] = False
+                # Enable SSL for cloud MySQL providers (e.g., Aiven, TiDB, PlanetScale)
+                if current_app.config.get('MYSQL_SSL', False):
+                    conn_params['ssl_disabled'] = False
+                    conn_params['ssl_verify_cert'] = False
 
-            g.db = mysql.connector.connect(**conn_params)
-            g.db_type = 'mysql'
+                g.db = mysql.connector.connect(**conn_params)
+                g.db_type = 'mysql'
+            except Exception as e:
+                # MySQL connection failed — fall back to SQLite
+                print(f'⚠️  MySQL connection failed ({e}), using SQLite fallback.')
+                g.db = _create_sqlite_connection()
+                g.db_type = 'sqlite'
         else:
-            # --- SQLite Fallback ---
-            db_path = current_app.config.get('SQLITE_DATABASE',
-                os.path.join(os.path.dirname(os.path.dirname(__file__)), 'database', 'college_events.db'))
-            os.makedirs(os.path.dirname(db_path), exist_ok=True)
-            g.db = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
-            g.db.row_factory = sqlite3.Row
-            g.db.execute("PRAGMA foreign_keys = ON")
-            g.db.execute("PRAGMA journal_mode = WAL")
+            # --- SQLite Fallback (no MySQL configured) ---
+            g.db = _create_sqlite_connection()
             g.db_type = 'sqlite'
 
     # Reconnect if MySQL connection was lost
