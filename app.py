@@ -72,12 +72,18 @@ def create_database_if_needed():
     from mysql.connector import Error as MySQLError
 
     try:
-        conn = mysql.connector.connect(
-            host=Config.MYSQL_HOST,
-            port=Config.MYSQL_PORT,
-            user=Config.MYSQL_USER,
-            password=Config.MYSQL_PASSWORD
-        )
+        conn_params = {
+            'host': Config.MYSQL_HOST,
+            'port': Config.MYSQL_PORT,
+            'user': Config.MYSQL_USER,
+            'password': Config.MYSQL_PASSWORD,
+            'connection_timeout': 10
+        }
+        if Config.MYSQL_SSL:
+            conn_params['ssl_disabled'] = False
+            conn_params['ssl_verify_cert'] = False
+
+        conn = mysql.connector.connect(**conn_params)
         cursor = conn.cursor()
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{Config.MYSQL_DATABASE}` "
                        f"CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")

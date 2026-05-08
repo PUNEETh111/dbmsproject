@@ -33,6 +33,7 @@ class Config:
     MYSQL_USER = os.environ.get('MYSQL_USER', 'root')
     MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', '')
     MYSQL_DATABASE = os.environ.get('MYSQL_DATABASE', 'college_events')
+    MYSQL_SSL = os.environ.get('MYSQL_SSL', '').lower() in ('true', '1', 'yes')
 
     # Session configuration
     SESSION_TYPE = 'filesystem'

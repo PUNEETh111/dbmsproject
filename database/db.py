@@ -34,14 +34,24 @@ def get_db():
         mysql.connector.connection.MySQLConnection: Active database connection.
     """
     if 'db' not in g:
-        g.db = mysql.connector.connect(
-            host=current_app.config['MYSQL_HOST'],
-            port=current_app.config['MYSQL_PORT'],
-            user=current_app.config['MYSQL_USER'],
-            password=current_app.config['MYSQL_PASSWORD'],
-            database=current_app.config['MYSQL_DATABASE'],
-            autocommit=False  # Explicit transaction control: START TRANSACTION, COMMIT, ROLLBACK
-        )
+        # Build connection parameters
+        conn_params = {
+            'host': current_app.config['MYSQL_HOST'],
+            'port': current_app.config['MYSQL_PORT'],
+            'user': current_app.config['MYSQL_USER'],
+            'password': current_app.config['MYSQL_PASSWORD'],
+            'database': current_app.config['MYSQL_DATABASE'],
+            'autocommit': False,  # Explicit transaction control: START TRANSACTION, COMMIT, ROLLBACK
+            'connection_timeout': 10
+        }
+
+        # Enable SSL for cloud MySQL providers (e.g., Aiven, TiDB, PlanetScale)
+        # SSL encrypts data in transit between application and MySQL server
+        if current_app.config.get('MYSQL_SSL', False):
+            conn_params['ssl_disabled'] = False
+            conn_params['ssl_verify_cert'] = False
+
+        g.db = mysql.connector.connect(**conn_params)
     # Reconnect if connection was lost
     if not g.db.is_connected():
         g.db.reconnect(attempts=3, delay=1)
