@@ -1,221 +1,199 @@
-# 🚀 Smart College Event Management System
+# 🎓 Smart College Event Management System (MySQL Edition)
 
-A production-quality, full-stack web application for managing college events — built with **Python Flask + SQLite** and a **BCNF-normalized database**.
-
-> **DBMS Mini Project** — Demonstrates JOIN, GROUP BY, VIEW, TRIGGER, TRANSACTION, and referential integrity.
+> A full-stack Flask web application for managing college events, registrations, and participants — powered by **MySQL** as the RDBMS backend.
 
 ---
 
-## 📁 Folder Structure
+## 📚 DBMS Concepts Demonstrated
+
+This project showcases the following **MySQL/DBMS concepts** that are essential for understanding relational database management systems:
+
+### 1. **Relational Schema Design (BCNF)**
+- 4 tables: `STUDENT`, `FACULTY`, `EVENT`, `REGISTRATION`
+- All tables are in **Boyce-Codd Normal Form (BCNF)**
+- No partial or transitive dependencies exist
+
+### 2. **MySQL Data Types**
+- `INT AUTO_INCREMENT` — Auto-generated primary keys
+- `VARCHAR(n)` — Variable-length character strings
+- `TEXT` — Large text data (event descriptions)
+- `DATE` — Date values (YYYY-MM-DD)
+- `TIMESTAMP` — Automatic timestamp on INSERT
+
+### 3. **Constraints**
+- `PRIMARY KEY` — Unique row identifier
+- `FOREIGN KEY` with `ON DELETE CASCADE` / `ON DELETE SET NULL`
+- `UNIQUE` — Prevents duplicate USN, Email
+- `NOT NULL` — Mandatory fields
+- `DEFAULT` — Default values for optional fields
+
+### 4. **CRUD Operations**
+- `INSERT INTO` — Create new records (students, events, registrations)
+- `SELECT ... FROM ... WHERE` — Read/query records
+- `UPDATE ... SET ... WHERE` — Modify existing records
+- `DELETE FROM ... WHERE` — Remove records
+
+### 5. **JOIN Queries**
+- `INNER JOIN` — Fetch registrations with student details
+- `LEFT JOIN` — Fetch events even without assigned faculty
+- **Multi-table JOINs** — 3-table joins (REGISTRATION ↔ EVENT ↔ FACULTY)
+
+### 6. **Aggregate Functions & GROUP BY**
+- `COUNT()` — Count participants per event
+- `GROUP BY` — Group results by event for aggregation
+- `COALESCE()` — Handle NULL values in JOINs
+
+### 7. **Subqueries**
+- Correlated subqueries for counting registrations per event
+- Used in SELECT clause for dynamic participant counts
+
+### 8. **VIEWs**
+- `vw_event_participation` — A virtual table combining EVENT, FACULTY, and REGISTRATION data
+- Demonstrates `CREATE OR REPLACE VIEW` with JOIN + GROUP BY
+
+### 9. **TRIGGERs**
+- `trg_prevent_overbooking` — A `BEFORE INSERT` trigger on REGISTRATION
+- Uses `SIGNAL SQLSTATE '45000'` to raise custom errors
+- Enforces max seat capacity at the database level
+
+### 10. **TRANSACTIONS (ACID Properties)**
+- `START TRANSACTION` → `COMMIT` / `ROLLBACK`
+- Used in event registration to ensure atomicity
+- **Atomicity**: All-or-nothing operations
+- **Consistency**: Valid state transitions
+- **Isolation**: No interference between concurrent operations
+- **Durability**: Committed data survives crashes
+
+### 11. **INDEXes**
+- B-Tree indexes on frequently queried columns
+- Speeds up JOIN operations and WHERE clause filtering
+
+### 12. **InnoDB Storage Engine**
+- Row-level locking for concurrent access
+- Built-in foreign key support
+- ACID-compliant transactions
+
+### 13. **SQL Injection Prevention**
+- All queries use `%s` parameterized placeholders
+- mysql-connector-python handles proper escaping
+
+---
+
+## 🏗️ ER Diagram
 
 ```
-dbmsproject/
-├── app.py                          # Main Flask application (entry point)
-├── config.py                       # Configuration settings
-├── requirements.txt                # Python dependencies
-│
-├── database/
-│   ├── __init__.py
-│   ├── db.py                       # Database connection helper
-│   ├── schema.sql                  # DDL: Tables, Views, Triggers, Indexes
-│   └── seed.sql                    # Sample data (DML)
-│
-├── models/                         # Data Access Layer (Model in MVC)
-│   ├── __init__.py
-│   ├── student.py                  # Student CRUD operations
-│   ├── faculty.py                  # Faculty CRUD operations
-│   ├── event.py                    # Event CRUD + search + VIEW query
-│   └── registration.py            # Registration with TRANSACTION
-│
-├── routes/                         # Controllers (Controller in MVC)
-│   ├── __init__.py
-│   ├── auth.py                     # Login/Register/Logout routes
-│   ├── events.py                   # Event listing & detail routes
-│   ├── registrations.py           # Register/Unregister routes
-│   └── admin.py                    # Admin panel routes
-│
-├── templates/                      # Views (View in MVC)
-│   ├── base.html                   # Base layout with navbar & footer
-│   ├── home.html                   # Landing page with stats
-│   ├── login.html                  # Student login
-│   ├── register.html               # Student registration
-│   ├── admin_login.html            # Faculty login
-│   ├── events.html                 # Event listing with search
-│   ├── event_detail.html           # Single event detail
-│   ├── my_registrations.html       # Student's registered events
-│   ├── 404.html                    # Error page
-│   └── admin/
-│       ├── dashboard.html          # Admin dashboard with VIEW data
-│       ├── create_event.html       # Create event form
-│       ├── edit_event.html         # Edit event form
-│       └── event_registrations.html # Per-event participant list
-│
-└── static/
-    ├── css/
-    │   └── style.css               # Complete dark-theme stylesheet
-    └── js/
-        └── app.js                  # Client-side interactions
-```
-
----
-
-## ⚡ Quick Setup
-
-### Prerequisites
-- **Python 3.8** or higher
-- **pip** (Python package manager)
-
-### Steps
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/dbmsproject.git
-cd dbmsproject
-
-# 2. Create virtual environment & activate
-python3 -m venv venv
-source venv/bin/activate        # On Windows: venv\Scripts\activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Run the application
-python3 app.py
-```
-
-The app will:
-- Auto-create the SQLite database on first run
-- Auto-seed sample data (faculty, students, events, registrations)
-- Start at **http://127.0.0.1:5000**
-
-### Demo Credentials
-
-| Role    | Email                 | Password     |
-|---------|-----------------------|--------------|
-| Student | aarav@student.edu     | password123  |
-| Student | priya@student.edu     | password123  |
-| Faculty | ananya@college.edu    | password123  |
-| Faculty | rajesh@college.edu    | password123  |
-
----
-
-## 🗂️ Database Schema (ER Diagram)
-
-```
-┌──────────────┐       ┌──────────────────┐       ┌──────────────┐
-│   STUDENT    │       │   REGISTRATION   │       │    EVENT     │
-├──────────────┤       ├──────────────────┤       ├──────────────┤
-│ Student_ID PK│◄──────│ Student_ID FK    │       │ Event_ID  PK │
-│ Name         │       │ Event_ID   FK    │──────►│ Name         │
-│ Dept         │       │ Reg_ID     PK    │       │ Description  │
-│ Email UNIQUE │       │ Timestamp        │       │ Date         │
-└──────────────┘       └──────────────────┘       │ Venue        │
-                               UNIQUE             │ Max_Seats    │
-                         (Student_ID, Event_ID)    │ Faculty_ID FK│
-                                                   └──────┬───────┘
-                                                          │
-                                                   ┌──────▼───────┐
-                                                   │   FACULTY    │
-                                                   ├──────────────┤
-                                                   │ Faculty_ID PK│
-                                                   │ Name         │
-                                                   │ Dept         │
-                                                   │ Email UNIQUE │
-                                                   │ Password     │
-                                                   └──────────────┘
-```
-
----
-
-## 🧮 Database Normalization (1NF → BCNF)
-
-### First Normal Form (1NF) ✅
-- All attributes contain **atomic (indivisible) values**
-- Each row is **uniquely identifiable** via primary keys
-- No repeating groups or arrays
-
-### Second Normal Form (2NF) ✅
-- Already in 1NF
-- **No partial dependencies**: Every non-key attribute depends on the **entire** primary key
-- REGISTRATION uses a surrogate key (Reg_ID) with a UNIQUE constraint on (Student_ID, Event_ID)
-
-### Third Normal Form (3NF) ✅
-- Already in 2NF
-- **No transitive dependencies**: No non-key attribute depends on another non-key attribute
-- Example: In EVENT, Venue depends only on Event_ID, not on Faculty_ID
-
-### Boyce-Codd Normal Form (BCNF) ✅
-- Already in 3NF
-- **Every determinant is a candidate key**
-- Each table has exactly one candidate key (the primary key)
-- No functional dependency X → Y exists where X is not a superkey
-
-| Table        | Candidate Key | All FDs are from superkeys? |
-|:-------------|:--------------|:---------------------------|
-| STUDENT      | Student_ID    | ✅ Yes                     |
-| FACULTY      | Faculty_ID    | ✅ Yes                     |
-| EVENT        | Event_ID      | ✅ Yes                     |
-| REGISTRATION | Reg_ID        | ✅ Yes                     |
-
----
-
-## 🧮 SQL Features Demonstrated
-
-| Feature         | Location                                  |
-|:----------------|:------------------------------------------|
-| **JOIN**        | `models/event.py` — EVENT ↔ FACULTY       |
-| **JOIN**        | `models/registration.py` — REG ↔ STUDENT  |
-| **GROUP BY**    | `models/registration.py` — participant counts |
-| **VIEW**        | `database/schema.sql` — vw_event_participation |
-| **TRIGGER**     | `database/schema.sql` — trg_prevent_overbooking |
-| **TRANSACTION** | `models/registration.py` — BEGIN/COMMIT/ROLLBACK |
-| **INSERT**      | Student register, event creation           |
-| **UPDATE**      | Edit event                                 |
-| **DELETE**      | Delete event (cascading)                   |
-| **UNIQUE**      | Email, (Student_ID + Event_ID)             |
-| **FOREIGN KEY** | ON DELETE CASCADE / SET NULL               |
-| **INDEX**       | On Student_ID, Event_ID, Faculty_ID, Date  |
-
----
-
-## 🎨 Pages & Features
-
-- **Home** — Hero section, animated stats, event cards with capacity bars
-- **Events List** — Search/filter, popularity badges, registration status
-- **Event Detail** — Full info, capacity visualization, register/unregister
-- **My Registrations** — Table of registered events with cancel option
-- **Admin Dashboard** — Stats, event management, participation summary (VIEW)
-- **Create/Edit Event** — Forms with validation
-- **Event Registrations** — Per-event student list for faculty
-
----
-
-## 🏗️ Architecture (MVC Pattern)
-
-```
-┌─────────────────────────────────┐
-│         TEMPLATES (View)        │  ← HTML + Jinja2 templates
-├─────────────────────────────────┤
-│         ROUTES (Controller)     │  ← Flask Blueprints
-├─────────────────────────────────┤
-│         MODELS (Model)          │  ← Data access + business logic
-├─────────────────────────────────┤
-│         SQLite DATABASE         │  ← BCNF-normalized schema
-└─────────────────────────────────┘
+STUDENT (Student_ID PK, USN UK, Name, Dept, Email UK, Password)
+    |
+    | 1:M (one student → many registrations)
+    ↓
+REGISTRATION (Reg_ID PK, Student_ID FK, Event_ID FK, Reg_Time)
+    ↑
+    | M:1 (many registrations → one event)
+    |
+EVENT (Event_ID PK, Name, Description, Date, Venue, Max_Seats, Faculty_ID FK)
+    ↑
+    | M:1 (many events → one faculty)
+    |
+FACULTY (Faculty_ID PK, Name, Dept, Email UK, Password)
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Python 3, Flask 3.1
-- **Database**: SQLite 3
-- **Frontend**: HTML5, CSS3, JavaScript (ES6)
-- **Authentication**: Werkzeug password hashing (PBKDF2-SHA256)
-- **Architecture**: MVC (Model-View-Controller)
+| Component | Technology |
+|-----------|-----------|
+| Backend | Python Flask |
+| Database | **MySQL 8.0+** (InnoDB) |
+| MySQL Driver | mysql-connector-python |
+| Auth | Session-based + werkzeug PBKDF2 hashing |
+| Frontend | Jinja2 Templates + CSS |
+| Deployment | Render (Web Service) + Aiven (MySQL) |
 
 ---
 
-## 📜 License
+## 🚀 Setup Instructions
 
-This project is created for academic purposes (DBMS Mini Project).
+### Prerequisites
+- Python 3.10+
+- MySQL 8.0+ (local or cloud)
+
+### Local Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/YOUR_USERNAME/dbmsproject.git
+cd dbmsproject
+
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Start local MySQL and create database
+mysql -u root -p
+# mysql> CREATE DATABASE college_events;
+# mysql> EXIT;
+
+# 5. Set environment variables (optional for local)
+export MYSQL_HOST=localhost
+export MYSQL_PORT=3306
+export MYSQL_USER=root
+export MYSQL_PASSWORD=your_password
+export MYSQL_DATABASE=college_events
+
+# 6. Run the application
+python app.py
+```
+
+### Cloud Deployment (Render + Aiven)
+
+1. **Create MySQL on Aiven** (free tier): https://console.aiven.io/
+2. **Deploy to Render**: https://render.com/
+3. Set environment variables on Render:
+   - `MYSQL_HOST` — Aiven MySQL hostname
+   - `MYSQL_PORT` — Aiven MySQL port
+   - `MYSQL_USER` — Aiven MySQL username
+   - `MYSQL_PASSWORD` — Aiven MySQL password
+   - `MYSQL_DATABASE` — `college_events`
+   - `SECRET_KEY` — Random secret string
+
+---
+
+## 👤 Demo Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Student | aarav@student.edu | password123 |
+| Faculty/Admin | ananya@college.edu | password123 |
+
+---
+
+## 📁 Project Structure
+
+```
+dbmsproject/
+├── app.py                  # Main entry point (MySQL initialization)
+├── config.py               # MySQL connection configuration
+├── wsgi.py                 # Production WSGI entry point
+├── requirements.txt        # Python dependencies
+├── build.sh                # Render build script
+├── database/
+│   ├── db.py               # MySQL connection helper (get_db, close_db, init_db)
+│   ├── schema.sql          # MySQL DDL (CREATE TABLE, VIEW, TRIGGER, INDEX)
+│   └── seed.sql            # Sample data (INSERT IGNORE)
+├── models/
+│   ├── student.py          # Student CRUD (MySQL %s queries)
+│   ├── faculty.py          # Faculty CRUD
+│   ├── event.py            # Event CRUD + JOINs + VIEW queries
+│   └── registration.py     # Registration with TRANSACTIONS
+├── routes/
+│   ├── auth.py             # Login/Register (Student & Faculty)
+│   ├── events.py           # Event listing & search
+│   ├── registrations.py    # Register/Unregister for events
+│   └── admin.py            # Admin dashboard & management
+├── templates/              # Jinja2 HTML templates
+└── static/                 # CSS, JS, images
+```

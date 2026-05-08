@@ -1,47 +1,59 @@
 -- ============================================================
--- Smart College Event Management System — Sample Data
+-- Smart College Event Management System — MySQL Sample Data
 -- ============================================================
 -- ⚠️  WARNING: DO NOT USE THIS FILE DIRECTLY FOR SEEDING!
 --    The password hashes below are PLACEHOLDERS and will NOT
 --    validate with werkzeug's check_password_hash().
---    Use the Python seeder: python app.py (calls seed_sample_data)
---    which generates valid hashes at runtime.
+--    Use the Python seeder in app.py (calls seed_sample_data)
+--    which generates valid password hashes at runtime.
 -- ============================================================
 -- Passwords: "password123" (only valid when seeded via Python)
 -- ============================================================
 
 -- ============================================================
--- FACULTY (Admin Users)
--- Password: password123
+-- MySQL INSERT Syntax Notes:
+--   - INSERT IGNORE: Skips rows that would cause UNIQUE constraint
+--     violations (equivalent to SQLite's INSERT OR IGNORE)
+--   - Multi-row INSERT: MySQL supports inserting multiple rows
+--     in a single INSERT statement for better performance
+--   - %s placeholders: Used in Python for parameterized queries
+--     (MySQL uses %s instead of SQLite's ?)
 -- ============================================================
-INSERT OR IGNORE INTO FACULTY (Name, Dept, Email, Password) VALUES
+
+-- ============================================================
+-- FACULTY (Admin Users)
+-- Password: password123 (hashed via werkzeug at runtime)
+-- ============================================================
+INSERT IGNORE INTO FACULTY (Name, Dept, Email, Password) VALUES
 ('Dr. Ananya Sharma',  'Computer Science', 'ananya@college.edu',
- 'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
+ 'pbkdf2:sha256:600000$placeholder$placeholder_hash_not_valid'),
 ('Prof. Rajesh Kumar',  'Electronics',      'rajesh@college.edu',
- 'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
+ 'pbkdf2:sha256:600000$placeholder$placeholder_hash_not_valid'),
 ('Dr. Meena Iyer',      'Mathematics',      'meena@college.edu',
- 'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e');
+ 'pbkdf2:sha256:600000$placeholder$placeholder_hash_not_valid');
 
 -- ============================================================
 -- STUDENTS
--- Password: password123
+-- Password: password123 (hashed via werkzeug at runtime)
 -- ============================================================
-INSERT OR IGNORE INTO STUDENT (USN, Name, Dept, Email, Password) VALUES
+INSERT IGNORE INTO STUDENT (USN, Name, Dept, Email, Password) VALUES
 ('1RV21CS001', 'Aarav Patel',    'Computer Science', 'aarav@student.edu',
- 'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
+ 'pbkdf2:sha256:600000$placeholder$placeholder_hash_not_valid'),
 ('1RV21EC015', 'Priya Singh',    'Electronics',      'priya@student.edu',
- 'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
+ 'pbkdf2:sha256:600000$placeholder$placeholder_hash_not_valid'),
 ('1RV21ME032', 'Rohit Verma',    'Mechanical',       'rohit@student.edu',
- 'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
+ 'pbkdf2:sha256:600000$placeholder$placeholder_hash_not_valid'),
 ('1RV21CS045', 'Sneha Reddy',    'Computer Science', 'sneha@student.edu',
- 'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e'),
+ 'pbkdf2:sha256:600000$placeholder$placeholder_hash_not_valid'),
 ('1RV21CV008', 'Karan Mehta',    'Civil',            'karan@student.edu',
- 'pbkdf2:sha256:600000$salt$e24d55d8b5d0e5ec7b3d9b9d5f6a8c3e1d2f4a6b8c0e2f4a6b8c0e2f4a6b8c0e');
+ 'pbkdf2:sha256:600000$placeholder$placeholder_hash_not_valid');
 
 -- ============================================================
 -- EVENTS
+-- Uses MySQL DATE type (YYYY-MM-DD format)
+-- Faculty_ID references FACULTY table via FOREIGN KEY
 -- ============================================================
-INSERT OR IGNORE INTO EVENT (Name, Description, Date, Venue, Max_Seats, Faculty_ID) VALUES
+INSERT IGNORE INTO EVENT (Name, Description, Date, Venue, Max_Seats, Faculty_ID) VALUES
 ('TechFest 2024',
  'Annual technology festival featuring coding competitions, hackathons, and tech talks from industry leaders.',
  '2024-11-15', 'Main Auditorium', 200, 1),
@@ -71,9 +83,12 @@ INSERT OR IGNORE INTO EVENT (Name, Description, Date, Venue, Max_Seats, Faculty_
  '2025-01-20', 'Sports Complex', 300, 3);
 
 -- ============================================================
--- REGISTRATIONS (Sample)
+-- REGISTRATIONS (Sample M:N relationships)
+-- Each row creates a relationship between a Student and an Event
+-- The UNIQUE constraint (Student_ID, Event_ID) prevents duplicates
+-- The TRIGGER trg_prevent_overbooking checks seat capacity
 -- ============================================================
-INSERT OR IGNORE INTO REGISTRATION (Student_ID, Event_ID) VALUES
+INSERT IGNORE INTO REGISTRATION (Student_ID, Event_ID) VALUES
 (1, 1), (1, 2), (1, 6),
 (2, 1), (2, 3), (2, 4),
 (3, 3), (3, 5), (3, 7),

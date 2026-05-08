@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DBMS Mini Project — Smart College Event Management System</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e27;--card:#131842;--accent:#6c63ff;--accent2:#00d2ff;--text:#e8e8f0;--muted:#8888aa;--green:#00c896;--orange:#ff8c42;--red:#ff4d6d}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
+.slide{display:none;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;padding:3rem 5rem;position:relative;animation:fadeIn .5s}
+.slide.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+h1{font-size:3rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;text-align:center;line-height:1.2}
+h2{font-size:2.2rem;font-weight:700;color:var(--accent2);margin-bottom:1.5rem;text-align:center}
+h3{font-size:1.4rem;font-weight:600;color:var(--accent);margin-bottom:.8rem}
+p,.desc{font-size:1.1rem;color:var(--muted);line-height:1.7;text-align:center;max-width:800px}
+.subtitle{font-size:1.3rem;color:var(--text);margin-bottom:.5rem}
+.badge{display:inline-block;padding:.3rem .8rem;border-radius:20px;font-size:.8rem;font-weight:600;margin:.2rem}
+.badge-blue{background:rgba(108,99,255,.2);color:var(--accent)}
+.badge-cyan{background:rgba(0,210,255,.2);color:var(--accent2)}
+.badge-green{background:rgba(0,200,150,.2);color:var(--green)}
+.badge-orange{background:rgba(255,140,66,.2);color:var(--orange)}
+.card{background:var(--card);border-radius:16px;padding:1.8rem;border:1px solid rgba(108,99,255,.15);width:100%}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;width:100%;max-width:1000px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;width:100%;max-width:1000px}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;width:100%;max-width:1000px}
+ul{list-style:none;padding:0}
+ul li{padding:.4rem 0;font-size:1rem;color:var(--text)}
+ul li::before{content:"▸ ";color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+table th{background:var(--accent);color:#fff;padding:.6rem .8rem;text-align:left;font-weight:600}
+table td{padding:.5rem .8rem;border-bottom:1px solid rgba(255,255,255,.06);color:var(--text)}
+table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.pk{color:var(--accent2);font-weight:700}
+.fk{color:var(--orange);font-weight:600}
+.img-container{max-width:700px;margin:1rem auto;text-align:center}
+.img-container img{max-width:100%;border-radius:12px;border:2px solid rgba(108,99,255,.3)}
+code{background:rgba(108,99,255,.15);padding:.15rem .5rem;border-radius:6px;font-size:.9rem;color:var(--accent2);font-family:'Courier New',monospace}
+pre{background:#0d1117;border-radius:12px;padding:1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.6;color:#c9d1d9;text-align:left;border:1px solid rgba(108,99,255,.2)}
+.nav{position:fixed;bottom:2rem;right:2rem;display:flex;gap:.8rem;z-index:100}
+.nav button{background:var(--card);border:1px solid var(--accent);color:var(--accent);padding:.6rem 1.2rem;border-radius:10px;cursor:pointer;font-size:1rem;font-family:inherit;transition:all .2s}
+.nav button:hover{background:var(--accent);color:#fff}
+.counter{position:fixed;bottom:2.3rem;left:2rem;color:var(--muted);font-size:.9rem;z-index:100}
+.highlight{color:var(--accent2);font-weight:600}
+.sql-keyword{color:#ff7b72}
+.sql-func{color:#d2a8ff}
+.sql-string{color:#a5d6ff}
+.feature-icon{font-size:2rem;margin-bottom:.5rem}
+.center{text-align:center}
+.mt1{margin-top:1rem}
+.mt2{margin-top:2rem}
+.mb1{margin-bottom:1rem}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide active" id="s1">
+<div style="font-size:4rem;margin-bottom:1rem">🎓</div>
+<h1>Smart College Event<br>Management System</h1>
+<p class="subtitle" style="color:var(--accent2);font-size:1.4rem;margin:.8rem 0">DBMS Mini Project</p>
+<p style="margin-top:1rem">A full-stack web application for managing college events,<br>student registrations, and admin operations</p>
+<div style="margin-top:2rem;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center">
+<span class="badge badge-blue">Flask + Python</span>
+<span class="badge badge-cyan">SQLite</span>
+<span class="badge badge-green">BCNF Normalized</span>
+<span class="badge badge-orange">MVC Architecture</span>
+</div>
+</div>
+
+<!-- SLIDE 2: PROJECT OVERVIEW -->
+<div class="slide" id="s2">
+<h2>📋 Project Overview</h2>
+<div class="grid3">
+<div class="card center">
+<div class="feature-icon">👨‍🎓</div>
+<h3>Student Module</h3>
+<ul><li>Register with USN</li><li>Browse & search events</li><li>Register/unregister</li><li>View my registrations</li></ul>
+</div>
+<div class="card center">
+<div class="feature-icon">🛡️</div>
+<h3>Admin Module</h3>
+<ul><li>Admin registration</li><li>Create/Edit/Delete events</li><li>View registrations</li><li>Manage students</li></ul>
+</div>
+<div class="card center">
+<div class="feature-icon">🗄️</div>
+<h3>Database Features</h3>
+<ul><li>BCNF Normalization</li><li>Triggers & Views</li><li>Transactions</li><li>Foreign Keys & Indexes</li></ul>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 3: ER DIAGRAM -->
+<div class="slide" id="s3">
+<h2>📐 Entity-Relationship Diagram</h2>
+<div class="img-container">
+<img src="static/er_diagram.png" alt="ER Diagram">
+</div>
+<p class="mt1">4 Entities: <span class="highlight">STUDENT</span>, <span class="highlight">FACULTY</span>, <span class="highlight">EVENT</span>, <span class="highlight">REGISTRATION</span><br>
+Relationships: Faculty <em>organizes</em> Events (1:N) &nbsp;|&nbsp; Students <em>register for</em> Events (M:N)</p>
+</div>
+
+<!-- SLIDE 4: SCHEMA DIAGRAM -->
+<div class="slide" id="s4">
+<h2>🗂️ Relational Schema Diagram</h2>
+<div class="img-container">
+<img src="static/schema_diagram.png" alt="Schema Diagram">
+</div>
+<p class="mt1">Primary Keys in <span style="color:var(--accent2)">blue</span> &nbsp;|&nbsp; Foreign Keys in <span style="color:var(--orange)">orange</span> &nbsp;|&nbsp; Cascading deletes on Registration</p>
+</div>
+
+<!-- SLIDE 5: TABLE STRUCTURES -->
+<div class="slide" id="s5">
+<h2>📊 Table Structures</h2>
+<div class="grid2">
+<div class="card">
+<h3>STUDENT Table</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Constraint</th></tr>
+<tr><td class="pk">Student_ID</td><td>INTEGER</td><td>PRIMARY KEY</td></tr>
+<tr><td class="highlight">USN</td><td>TEXT</td><td>UNIQUE NOT NULL</td></tr>
+<tr><td>Name</td><td>TEXT</td><td>NOT NULL</td></tr>
+<tr><td>Dept</td><td>TEXT</td><td>NOT NULL</td></tr>
+<tr><td>Email</td><td>TEXT</td><td>UNIQUE NOT NULL</td></tr>
+<tr><td>Password</td><td>TEXT</td><td>NOT NULL (hashed)</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>EVENT Table</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Constraint</th></tr>
+<tr><td class="pk">Event_ID</td><td>INTEGER</td><td>PRIMARY KEY</td></tr>
+<tr><td>Name</td><td>TEXT</td><td>NOT NULL</td></tr>
+<tr><td>Description</td><td>TEXT</td><td>—</td></tr>
+<tr><td>Date</td><td>TEXT</td><td>NOT NULL</td></tr>
+<tr><td>Venue</td><td>TEXT</td><td>NOT NULL</td></tr>
+<tr><td>Max_Seats</td><td>INTEGER</td><td>DEFAULT 100</td></tr>
+<tr><td class="fk">Faculty_ID</td><td>INTEGER</td><td>FK → FACULTY</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>FACULTY Table</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Constraint</th></tr>
+<tr><td class="pk">Faculty_ID</td><td>INTEGER</td><td>PRIMARY KEY</td></tr>
+<tr><td>Name</td><td>TEXT</td><td>NOT NULL</td></tr>
+<tr><td>Dept</td><td>TEXT</td><td>NOT NULL</td></tr>
+<tr><td>Email</td><td>TEXT</td><td>UNIQUE NOT NULL</td></tr>
+<tr><td>Password</td><td>TEXT</td><td>NOT NULL (hashed)</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>REGISTRATION Table</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Constraint</th></tr>
+<tr><td class="pk">Reg_ID</td><td>INTEGER</td><td>PRIMARY KEY</td></tr>
+<tr><td class="fk">Student_ID</td><td>INTEGER</td><td>FK → STUDENT</td></tr>
+<tr><td class="fk">Event_ID</td><td>INTEGER</td><td>FK → EVENT</td></tr>
+<tr><td>Timestamp</td><td>DATETIME</td><td>DEFAULT NOW</td></tr>
+<tr><td colspan="3" style="color:var(--green);font-size:.8rem">UNIQUE(Student_ID, Event_ID)</td></tr>
+</table>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 6: NORMALIZATION -->
+<div class="slide" id="s6">
+<h2>✅ BCNF Normalization</h2>
+<div class="card" style="max-width:900px">
+<p class="desc" style="text-align:left;max-width:100%">All tables satisfy <strong style="color:var(--accent2)">Boyce-Codd Normal Form (BCNF)</strong>:</p>
+<div class="grid2 mt2">
+<div>
+<h3>1NF ✓</h3>
+<ul><li>All attributes are atomic</li><li>Each column has a single value</li><li>No repeating groups</li></ul>
+</div>
+<div>
+<h3>2NF ✓</h3>
+<ul><li>Is in 1NF</li><li>No partial dependencies</li><li>Non-key attributes depend on full PK</li></ul>
+</div>
+<div>
+<h3>3NF ✓</h3>
+<ul><li>Is in 2NF</li><li>No transitive dependencies</li><li>Non-key depends only on PK</li></ul>
+</div>
+<div>
+<h3>BCNF ✓</h3>
+<ul><li>Is in 3NF</li><li>Every determinant is a candidate key</li><li>No anomalies possible</li></ul>
+</div>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 7: TRIGGER -->
+<div class="slide" id="s7">
+<h2>⚡ Database Trigger — Prevent Overbooking</h2>
+<div class="card" style="max-width:800px">
+<pre><span class="sql-keyword">CREATE TRIGGER</span> trg_prevent_overbooking
+<span class="sql-keyword">BEFORE INSERT ON</span> REGISTRATION
+<span class="sql-keyword">BEGIN</span>
+    <span class="sql-keyword">SELECT CASE</span>
+        <span class="sql-keyword">WHEN</span> (
+            <span class="sql-keyword">SELECT</span> <span class="sql-func">COUNT</span>(*) <span class="sql-keyword">FROM</span> REGISTRATION
+            <span class="sql-keyword">WHERE</span> Event_ID = NEW.Event_ID
+        ) >= (
+            <span class="sql-keyword">SELECT</span> Max_Seats <span class="sql-keyword">FROM</span> EVENT
+            <span class="sql-keyword">WHERE</span> Event_ID = NEW.Event_ID
+        )
+        <span class="sql-keyword">THEN RAISE</span>(ABORT, <span class="sql-string">'EVENT_FULL'</span>)
+    <span class="sql-keyword">END</span>;
+<span class="sql-keyword">END</span>;</pre>
+<p class="mt1 desc" style="text-align:left;max-width:100%">🔒 Automatically prevents registration when an event reaches maximum capacity. Fires <strong>before every INSERT</strong> on REGISTRATION table.</p>
+</div>
+</div>
+
+<!-- SLIDE 8: VIEW -->
+<div class="slide" id="s8">
+<h2>👁️ Database VIEW — Participation Summary</h2>
+<div class="card" style="max-width:850px">
+<pre><span class="sql-keyword">CREATE VIEW</span> vw_event_participation <span class="sql-keyword">AS</span>
+<span class="sql-keyword">SELECT</span>
+    E.Event_ID,
+    E.Name       <span class="sql-keyword">AS</span> Event_Name,
+    E.Date       <span class="sql-keyword">AS</span> Event_Date,
+    E.Venue,
+    E.Max_Seats,
+    F.Name       <span class="sql-keyword">AS</span> Faculty_Name,
+    <span class="sql-func">COUNT</span>(R.Reg_ID) <span class="sql-keyword">AS</span> Participant_Count
+<span class="sql-keyword">FROM</span> EVENT E
+<span class="sql-keyword">LEFT JOIN</span> FACULTY F <span class="sql-keyword">ON</span> E.Faculty_ID = F.Faculty_ID
+<span class="sql-keyword">LEFT JOIN</span> REGISTRATION R <span class="sql-keyword">ON</span> E.Event_ID = R.Event_ID
+<span class="sql-keyword">GROUP BY</span> E.Event_ID;</pre>
+<p class="mt1 desc" style="text-align:left;max-width:100%">📊 Uses <strong>JOIN</strong> across 3 tables + <strong>GROUP BY</strong> aggregation. Provides a real-time participation dashboard for admins.</p>
+</div>
+</div>
+
+<!-- SLIDE 9: TRANSACTION -->
+<div class="slide" id="s9">
+<h2>🔄 Transaction — Event Registration</h2>
+<div class="card" style="max-width:800px">
+<pre><span class="sql-keyword">BEGIN</span> TRANSACTION;
+
+<span class="sql-keyword">-- Step 1:</span> Verify event exists
+<span class="sql-keyword">SELECT</span> Event_ID, Name, Max_Seats
+<span class="sql-keyword">FROM</span> EVENT <span class="sql-keyword">WHERE</span> Event_ID = ?;
+
+<span class="sql-keyword">-- Step 2:</span> Insert registration
+<span class="sql-keyword">-- Trigger fires here → checks capacity</span>
+<span class="sql-keyword">INSERT INTO</span> REGISTRATION (Student_ID, Event_ID)
+<span class="sql-keyword">VALUES</span> (?, ?);
+
+<span class="sql-keyword">COMMIT</span>;  <span style="color:var(--green)">-- Success</span>
+<span style="color:var(--muted)">-- OR</span>
+<span class="sql-keyword">ROLLBACK</span>; <span style="color:var(--red)">-- On error (duplicate/full)</span></pre>
+<p class="mt1 desc" style="text-align:left;max-width:100%">🔐 <strong>ACID-compliant</strong> transaction ensures atomicity. Either registration succeeds fully or rolls back completely.</p>
+</div>
+</div>
+
+<!-- SLIDE 10: INDEXES & QUERIES -->
+<div class="slide" id="s10">
+<h2>🚀 Indexes & Key SQL Operations</h2>
+<div class="grid2" style="max-width:950px">
+<div class="card">
+<h3>📑 Indexes (Performance)</h3>
+<pre style="font-size:.78rem"><span class="sql-keyword">CREATE INDEX</span> idx_registration_student
+  <span class="sql-keyword">ON</span> REGISTRATION(Student_ID);
+
+<span class="sql-keyword">CREATE INDEX</span> idx_registration_event
+  <span class="sql-keyword">ON</span> REGISTRATION(Event_ID);
+
+<span class="sql-keyword">CREATE INDEX</span> idx_event_faculty
+  <span class="sql-keyword">ON</span> EVENT(Faculty_ID);
+
+<span class="sql-keyword">CREATE INDEX</span> idx_event_date
+  <span class="sql-keyword">ON</span> EVENT(Date);</pre>
+</div>
+<div class="card">
+<h3>🔍 CRUD Operations</h3>
+<ul>
+<li><code>INSERT</code> — Create student, event, registration</li>
+<li><code>SELECT</code> — Search, filter, find by ID/email</li>
+<li><code>UPDATE</code> — Edit event details</li>
+<li><code>DELETE</code> — Remove event, student, registration</li>
+<li><code>JOIN</code> — 3-table joins for rich queries</li>
+<li><code>GROUP BY</code> — Participant counts</li>
+<li><code>SUBQUERY</code> — Inline count in SELECT</li>
+</ul>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 11: TECH STACK -->
+<div class="slide" id="s11">
+<h2>🛠️ Technology Stack</h2>
+<div class="grid3" style="max-width:900px">
+<div class="card center">
+<div class="feature-icon">🐍</div>
+<h3>Backend</h3>
+<ul><li>Python 3</li><li>Flask Framework</li><li>Werkzeug (hashing)</li><li>Gunicorn (prod)</li></ul>
+</div>
+<div class="card center">
+<div class="feature-icon">🗄️</div>
+<h3>Database</h3>
+<ul><li>SQLite 3</li><li>Foreign Keys</li><li>WAL Journal Mode</li><li>BCNF Schema</li></ul>
+</div>
+<div class="card center">
+<div class="feature-icon">🎨</div>
+<h3>Frontend</h3>
+<ul><li>HTML5 + CSS3</li><li>Jinja2 Templates</li><li>Responsive Design</li><li>Modern UI/UX</li></ul>
+</div>
+</div>
+<div class="card mt2 center" style="max-width:900px">
+<h3>📁 MVC Architecture</h3>
+<p class="desc" style="max-width:100%"><code>models/</code> → Database logic &nbsp;|&nbsp; <code>routes/</code> → Controllers &nbsp;|&nbsp; <code>templates/</code> → Views &nbsp;|&nbsp; <code>database/</code> → Schema & Seeds</p>
+</div>
+</div>
+
+<!-- SLIDE 12: THANK YOU -->
+<div class="slide" id="s12">
+<div style="font-size:4rem;margin-bottom:1rem">🎉</div>
+<h1>Thank You!</h1>
+<p class="subtitle" style="color:var(--accent2);font-size:1.3rem">Smart College Event Management System</p>
+<div style="margin-top:2rem;display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center">
+<div class="card center" style="min-width:150px"><div class="feature-icon">4</div><p>Tables</p></div>
+<div class="card center" style="min-width:150px"><div class="feature-icon">1</div><p>Trigger</p></div>
+<div class="card center" style="min-width:150px"><div class="feature-icon">1</div><p>View</p></div>
+<div class="card center" style="min-width:150px"><div class="feature-icon">4</div><p>Indexes</p></div>
+<div class="card center" style="min-width:150px"><div class="feature-icon">✓</div><p>BCNF</p></div>
+</div>
+<p class="mt2" style="color:var(--muted)">Questions?</p>
+</div>
+
+<!-- NAVIGATION -->
+<div class="counter"><span id="cur">1</span> / <span id="tot">12</span></div>
+<div class="nav">
+<button onclick="go(-1)">← Prev</button>
+<button onclick="go(1)">Next →</button>
+</div>
+
+<script>
+let c=0;const s=document.querySelectorAll('.slide'),t=s.length;
+document.getElementById('tot').textContent=t;
+function go(d){s[c].classList.remove('active');c=Math.max(0,Math.min(t-1,c+d));s[c].classList.add('active');document.getElementById('cur').textContent=c+1}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')go(1);if(e.key==='ArrowLeft')go(-1)});
+</script>
+</body>
+</html>
