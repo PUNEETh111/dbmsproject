@@ -48,3 +48,4 @@ build/
 # Byte-compiled / optimized
 *.pyc
 
+database/college_events.db

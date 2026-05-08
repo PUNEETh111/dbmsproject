@@ -2,7 +2,9 @@
 app.py — Main Application Entry Point
 Smart College Event Management System (MySQL Edition)
 
-This Flask application uses MySQL as its RDBMS backend.
+This Flask application uses MySQL as its primary RDBMS backend,
+with automatic SQLite fallback for zero-configuration deployment.
+
 MySQL Concepts Demonstrated:
   - Database connection using mysql-connector-python
   - Table creation with InnoDB engine (ACID transactions)
@@ -18,7 +20,7 @@ MySQL Concepts Demonstrated:
 import os
 from flask import Flask, render_template, session
 from config import Config
-from database.db import get_db, close_db, init_db
+from database.db import get_db, close_db, init_db, get_db_type, is_mysql_configured
 from werkzeug.security import generate_password_hash
 
 
@@ -61,195 +63,15 @@ def create_app():
     return app
 
 
-def create_database_if_needed():
-    """
-    Create the MySQL database if it doesn't exist.
-
-    Uses mysql-connector-python to connect WITHOUT specifying a database,
-    then runs CREATE DATABASE IF NOT EXISTS to ensure the database exists.
-    """
-    import mysql.connector
-    from mysql.connector import Error as MySQLError
-
-    try:
-        conn_params = {
-            'host': Config.MYSQL_HOST,
-            'port': Config.MYSQL_PORT,
-            'user': Config.MYSQL_USER,
-            'password': Config.MYSQL_PASSWORD,
-            'connection_timeout': 10
-        }
-        if Config.MYSQL_SSL:
-            conn_params['ssl_disabled'] = False
-            conn_params['ssl_verify_cert'] = False
-
-        conn = mysql.connector.connect(**conn_params)
-        cursor = conn.cursor()
-        cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{Config.MYSQL_DATABASE}` "
-                       f"CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
-        cursor.close()
-        conn.close()
-        print(f"✅ Database '{Config.MYSQL_DATABASE}' ready.")
-    except MySQLError as e:
-        print(f"⚠️  Could not create database: {e}")
-
-
-def init_schema_with_trigger():
-    """
-    Initialize MySQL schema including TRIGGER creation.
-
-    MySQL TRIGGERs require special handling:
-      - The DELIMITER command is not supported by mysql-connector-python
-      - TRIGGERs must be created in a separate cursor.execute() call
-      - We first create tables/views, then create triggers separately
-    """
-    db = get_db()
-    cursor = db.cursor()
-
-    # --- Create Tables ---
-    table_statements = [
-        """CREATE TABLE IF NOT EXISTS STUDENT (
-            Student_ID  INT             AUTO_INCREMENT,
-            USN         VARCHAR(20)     UNIQUE NOT NULL,
-            Name        VARCHAR(100)    NOT NULL,
-            Dept        VARCHAR(50)     NOT NULL DEFAULT 'General',
-            Email       VARCHAR(100)    UNIQUE NOT NULL,
-            Password    VARCHAR(255)    NOT NULL,
-            PRIMARY KEY (Student_ID)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""",
-
-        """CREATE TABLE IF NOT EXISTS FACULTY (
-            Faculty_ID  INT             AUTO_INCREMENT,
-            Name        VARCHAR(100)    NOT NULL,
-            Dept        VARCHAR(50)     NOT NULL DEFAULT 'General',
-            Email       VARCHAR(100)    UNIQUE NOT NULL,
-            Password    VARCHAR(255)    NOT NULL,
-            PRIMARY KEY (Faculty_ID)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""",
-
-        """CREATE TABLE IF NOT EXISTS EVENT (
-            Event_ID    INT             AUTO_INCREMENT,
-            Name        VARCHAR(200)    NOT NULL,
-            Description TEXT            DEFAULT NULL,
-            Date        DATE            NOT NULL,
-            Venue       VARCHAR(200)    NOT NULL,
-            Max_Seats   INT             DEFAULT 100,
-            Faculty_ID  INT             DEFAULT NULL,
-            PRIMARY KEY (Event_ID),
-            CONSTRAINT fk_event_faculty
-                FOREIGN KEY (Faculty_ID) REFERENCES FACULTY(Faculty_ID)
-                ON DELETE SET NULL
-                ON UPDATE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4""",
-
-        """CREATE TABLE IF NOT EXISTS REGISTRATION (
-            Reg_ID      INT         AUTO_INCREMENT,
-            Student_ID  INT         NOT NULL,
-            Event_ID    INT         NOT NULL,
-            Reg_Time    TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (Reg_ID),
-            CONSTRAINT fk_reg_student
-                FOREIGN KEY (Student_ID) REFERENCES STUDENT(Student_ID)
-                ON DELETE CASCADE
-                ON UPDATE CASCADE,
-            CONSTRAINT fk_reg_event
-                FOREIGN KEY (Event_ID) REFERENCES EVENT(Event_ID)
-                ON DELETE CASCADE
-                ON UPDATE CASCADE,
-            UNIQUE KEY uq_student_event (Student_ID, Event_ID)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"""
-    ]
-
-    for stmt in table_statements:
-        try:
-            cursor.execute(stmt)
-        except Exception as e:
-            print(f"Table creation note: {e}")
-
-    db.commit()
-
-    # --- Create Indexes (ignore if already exist) ---
-    index_statements = [
-        "CREATE INDEX idx_registration_student ON REGISTRATION(Student_ID)",
-        "CREATE INDEX idx_registration_event ON REGISTRATION(Event_ID)",
-        "CREATE INDEX idx_event_faculty ON EVENT(Faculty_ID)",
-        "CREATE INDEX idx_event_date ON EVENT(Date)"
-    ]
-
-    for stmt in index_statements:
-        try:
-            cursor.execute(stmt)
-        except Exception:
-            pass  # Index already exists
-
-    db.commit()
-
-    # --- Create VIEW ---
-    try:
-        cursor.execute("""
-            CREATE OR REPLACE VIEW vw_event_participation AS
-            SELECT
-                E.Event_ID,
-                E.Name       AS Event_Name,
-                E.Date       AS Event_Date,
-                E.Venue,
-                E.Max_Seats,
-                COALESCE(F.Name, 'Unassigned') AS Faculty_Name,
-                COUNT(R.Reg_ID) AS Participant_Count
-            FROM EVENT E
-            LEFT JOIN FACULTY F ON E.Faculty_ID = F.Faculty_ID
-            LEFT JOIN REGISTRATION R ON E.Event_ID = R.Event_ID
-            GROUP BY E.Event_ID, E.Name, E.Date, E.Venue, E.Max_Seats, F.Name
-        """)
-    except Exception as e:
-        print(f"View creation note: {e}")
-
-    db.commit()
-
-    # --- Create TRIGGER ---
-    # MySQL TRIGGERs use SIGNAL SQLSTATE '45000' to raise custom errors
-    # (unlike SQLite's RAISE(ABORT, ...))
-    try:
-        cursor.execute("DROP TRIGGER IF EXISTS trg_prevent_overbooking")
-        cursor.execute("""
-            CREATE TRIGGER trg_prevent_overbooking
-            BEFORE INSERT ON REGISTRATION
-            FOR EACH ROW
-            BEGIN
-                DECLARE current_count INT;
-                DECLARE max_allowed INT;
-
-                SELECT COUNT(*) INTO current_count
-                FROM REGISTRATION
-                WHERE Event_ID = NEW.Event_ID;
-
-                SELECT Max_Seats INTO max_allowed
-                FROM EVENT
-                WHERE Event_ID = NEW.Event_ID;
-
-                IF current_count >= max_allowed THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'EVENT_FULL: This event has reached maximum capacity.';
-                END IF;
-            END
-        """)
-    except Exception as e:
-        print(f"Trigger creation note: {e}")
-
-    db.commit()
-    cursor.close()
-
-
 def seed_sample_data():
     """
-    Insert sample data with properly hashed passwords into MySQL.
+    Insert sample data with properly hashed passwords.
 
-    Uses parameterized INSERT with %s placeholders to prevent SQL injection.
-    MySQL's INSERT IGNORE is used in production seed.sql, but here we use
-    try/except to handle duplicates gracefully.
+    Uses parameterized queries with %s placeholders (auto-converted
+    to ? for SQLite by the execute_query helper).
     """
-    db = get_db()
-    cursor = db.cursor()
+    from database.db import execute_query
+
     pw = generate_password_hash('password123')
 
     # --- INSERT Faculty ---
@@ -260,9 +82,9 @@ def seed_sample_data():
     ]
     for n, d, e in faculty:
         try:
-            cursor.execute(
+            execute_query(
                 "INSERT INTO FACULTY (Name, Dept, Email, Password) VALUES (%s, %s, %s, %s)",
-                (n, d, e, pw)
+                (n, d, e, pw), commit=True
             )
         except Exception:
             pass
@@ -277,9 +99,9 @@ def seed_sample_data():
     ]
     for usn, n, d, e in students:
         try:
-            cursor.execute(
+            execute_query(
                 "INSERT INTO STUDENT (USN, Name, Dept, Email, Password) VALUES (%s, %s, %s, %s, %s)",
-                (usn, n, d, e, pw)
+                (usn, n, d, e, pw), commit=True
             )
         except Exception:
             pass
@@ -296,9 +118,9 @@ def seed_sample_data():
     ]
     for n, desc, dt, v, s, f in events:
         try:
-            cursor.execute(
+            execute_query(
                 "INSERT INTO EVENT (Name, Description, Date, Venue, Max_Seats, Faculty_ID) VALUES (%s, %s, %s, %s, %s, %s)",
-                (n, desc, dt, v, s, f)
+                (n, desc, dt, v, s, f), commit=True
             )
         except Exception:
             pass
@@ -307,52 +129,42 @@ def seed_sample_data():
     regs = [(1,1),(1,2),(1,6),(2,1),(2,3),(2,4),(3,3),(3,5),(3,7),(4,1),(4,2),(4,6),(5,3),(5,5),(5,7)]
     for sid, eid in regs:
         try:
-            cursor.execute(
+            execute_query(
                 "INSERT INTO REGISTRATION (Student_ID, Event_ID) VALUES (%s, %s)",
-                (sid, eid)
+                (sid, eid), commit=True
             )
         except Exception:
             pass
 
-    db.commit()
-    cursor.close()
-
 
 # --- Production: Module-level app for Gunicorn ---
-# Gunicorn uses `gunicorn app:app` which needs this at module level
 app = create_app()
 
-# Auto-initialize MySQL database (works on both local and Render)
+# Auto-initialize database (works on both local and Render)
 with app.app_context():
     try:
-        # Step 1: Create database if it doesn't exist
-        create_database_if_needed()
-
-        # Step 2: Check if tables exist
         need_init = False
+
         try:
-            db = get_db()
-            cursor = db.cursor()
-            cursor.execute("SELECT 1 FROM STUDENT LIMIT 1")
-            cursor.fetchone()
-            cursor.execute("SELECT 1 FROM EVENT LIMIT 1")
-            cursor.fetchone()
-            cursor.close()
+            from database.db import execute_query
+            execute_query("SELECT 1 FROM STUDENT LIMIT 1", fetch_one=True)
+            execute_query("SELECT 1 FROM EVENT LIMIT 1", fetch_one=True)
+            db_type = get_db_type()
+            print(f'✅ Database OK ({db_type.upper()})')
         except Exception:
             need_init = True
 
-        # Step 3: Initialize schema and seed data if needed
         if need_init:
-            init_schema_with_trigger()
+            init_db()
             seed_sample_data()
-            print('✅ MySQL database initialized and seeded.')
+            db_type = get_db_type()
+            print(f'✅ Database initialized and seeded ({db_type.upper()})')
     except Exception as e:
         print(f'⚠️  DB init note: {e}')
 
 
 if __name__ == '__main__':
     print('\n🚀 Smart College Event Management System (MySQL Edition)')
-    print(f'🗄️  MySQL: {Config.MYSQL_HOST}:{Config.MYSQL_PORT}/{Config.MYSQL_DATABASE}')
     print('📍 http://127.0.0.1:5000')
     print('👤 Student: aarav@student.edu / password123 (USN: 1RV21CS001)')
     print('🧑‍🏫 Faculty: ananya@college.edu / password123\n')
